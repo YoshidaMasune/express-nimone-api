@@ -9,6 +9,7 @@ router.get('/nimone', (req,res) => {
    conndb.execute(
       `SELECT * FROM nimones INNER JOIN users on nimones.nimoneID = users.userID ORDER BY users.first_name`,
       (err, result, feilds) => {
+   // --- response --- //
          res.json(result)
       }
    )
@@ -41,13 +42,15 @@ router.post('/create/nimone', (req,res) => {
    )
 });
 
-// edit nimone 
-router.put('/edit/:id', (req, res) => {
+// -->> edit nimone <<-- //
+const validateForm = require('../middleware/validateForm')
+
+router.put('/edit', validateForm, (req, res) => {
    const userInp = req.body;
 
    conndb.execute(
       `UPDATE users SET first_name = ?, last_name = ? WHERE users.userID = ?`,
-      [userInp.first_name || null, userInp.last_name || null, req.params.id],
+      [userInp.first_name, userInp.last_name, userInp.id],
       (err, result, fields) => {
          if (err) throw err
       }
@@ -56,16 +59,40 @@ router.put('/edit/:id', (req, res) => {
    conndb.execute(
       `UPDATE nimones SET type = ?, monk = ?, detail = ?, location = ?, address = ?, district = ?, ampor = ?, city = ? WHERE userID = ?`,
       [
-         userInp.type || undefined, userInp.monk || undefined, userInp.detail || undefined, userInp.location || undefined,
-         userInp.address ||undefined, userInp.district ||undefined, userInp.ampor ||undefined,
-         userInp.city ||undefined, req.params.id
+         userInp.type , userInp.monk , userInp.detail , userInp.location ,
+         userInp.address, userInp.district, userInp.ampor,
+         userInp.city, userInp.id
       ],
       (err, result, fields) => {
          if (err) throw err
+         // --- response --- //
          res.json(result)
       }
    )
 
+});
+
+// -->> DELETE <<-- //
+router.delete('/delete/', (req,res) => {
+   try{
+      conndb.execute(
+         `DELETE FROM nimones WHERE nimones.nimoneID = ?`,
+         [req.body.id],
+         (err, result, feilds) => {
+            if (err) throw err
+            if (result.affectedRows){
+               res.send('delete 1 record')
+            }else{
+               res.send('no user')
+            }
+         }
+      );
+
+      // res.status(200).send('delete 1 record.!')
+   }catch(err){
+      console.log(err)
+   }
+  
 })
 
 
